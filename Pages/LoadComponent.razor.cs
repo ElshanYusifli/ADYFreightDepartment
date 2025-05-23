@@ -6,16 +6,24 @@ namespace ADYFreightDepartment.Pages
 {
     public partial class LoadComponent
     {
-        private ILoadService _loadService;
+        public IEnumerable<Load> Loads { get; set; }
 
-        public LoadComponent(ILoadService loadService)
+        [Inject]
+        public ILoadService LoadService { get; set; }
+
+        [Inject]
+        public NavigationManager NavigationManager { get; set; }
+
+        protected override void OnInitialized()
         {
-            _loadService = loadService;
+            Loads = LoadService.GetAll();
         }
 
-        public IEnumerable<Load> GetAll()
+        protected async Task RedirectToLoadDetails(string trackingId)
         {
-            return _loadService.GetAll();
+            NavigationManager.NavigateTo($"load-details/{trackingId}");
+
+            await InvokeAsync(StateHasChanged);
         }
     }
 }
