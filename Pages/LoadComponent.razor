@@ -1,3 +1,43 @@
-﻿@page "/loads"
+﻿@page "/"
+@page "/loads"
+@using ADYFreightDepartment.Extensions
 
-<h3>LoadComponent</h3>
+<PageTitle>Yüklər</PageTitle>
+
+<div class="title">
+    <h1>
+        Yüklər
+    </h1>
+</div>
+
+<div class="data-grid">
+    <table>
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>TrackingId</th>
+                <th>Status</th>
+                <th>Əməliyyatlar</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int rowNumber = 1;
+                foreach (var load in Loads)
+                {
+                    <tr>
+                        <td>@rowNumber</td>
+                        <td>@load.TrackingId</td>
+                        <td>@((load.Status as Enum)?.GetDescription())</td>
+                        <td class="grid-actions">
+                            <button class="mainBtn gridBtn" role="button" @onclick="@(() => RedirectToLoadDetails(load.TrackingId))">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    rowNumber++;
+                }
+            }
+        </tbody>
+    </table>
+</div>

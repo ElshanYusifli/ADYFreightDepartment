@@ -1,4 +1,5 @@
 ﻿using ADYFreightDepartment.Models;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace ADYFreightDepartment.Services
 {
@@ -7,12 +8,12 @@ namespace ADYFreightDepartment.Services
         IEnumerable<Load> Loads { get; set; }
         IEnumerable<Load> GetAll();
         Load GetByTrackingId(string trackingId);
-        void UpdateProductStatus(string trackingId, int productId, ProductStatus status, string description, IFormFile formFile);
+        Task UpdateProductStatus(UpdateProductDetailsModel model);
     }
 
     public class LoadService : ILoadService
     {
-        public IEnumerable<Load> Loads { get; set; } = new List<Load> 
+        public IEnumerable<Load> Loads { get; set; } = new List<Load>
         {
             new Load
             {
@@ -80,25 +81,28 @@ namespace ADYFreightDepartment.Services
             }
         };
 
-        public const string FilePath = "Loads/";
+        public const string FilePath = "Loads";
 
         public IEnumerable<Load> GetAll() => Loads;
 
         public Load GetByTrackingId(string trackingId) => Loads.FirstOrDefault(i => i.TrackingId == trackingId);
 
-        public void UpdateProductStatus(string trackingId, int productId, ProductStatus status, string description, IFormFile formFile)
+        public async Task UpdateProductStatus(UpdateProductDetailsModel model)
         {
-            var load = Loads.FirstOrDefault(l => l.TrackingId == trackingId);
+            var load = Loads.FirstOrDefault(l => l.TrackingId == model.TrackingId);
 
             if (load != null)
             {
-                var product = load.Products.FirstOrDefault(p => p.Id == productId);
+                var product = load.Products.FirstOrDefault(p => p.Id == model.ProductId);
 
                 if (product != null)
                 {
-                    product.Status = status;
-                    product.Description = description;
-                    product.ImagePath = GetImagePath(trackingId, productId, formFile);
+                    product.Status = model.Status;
+                    product.Description = model.Description;
+                    if (model.File != null)
+                    {
+                        product.ImagePath = await GetImagePath(model.TrackingId, model.ProductId, model.File);
+                    }
                     return;
                 }
             }
@@ -106,23 +110,24 @@ namespace ADYFreightDepartment.Services
             return;
         }
 
-        private string GetImagePath(string trackingId, int productId, IFormFile formFile)
+        private async Task<string> GetImagePath(string trackingId, int productId, IBrowserFile browserFile)
         {
-            string currentPath = $"{FilePath}/{trackingId}";
+            //string currentPath = $"{FilePath}\\{trackingId}";
+
+            var currentPath = Path.Combine(AppContext.BaseDirectory, FilePath, trackingId);
 
             if (!Directory.Exists(currentPath))
             {
                 Directory.CreateDirectory(currentPath);
             }
 
-            var uniqueFileName = $"{Guid.NewGuid()}_{formFile.FileName}";
+            var uniqueFileName = $"{Guid.NewGuid()}_{browserFile.Name}";
 
             var filePath = Path.Combine(currentPath, uniqueFileName);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                formFile.CopyTo(stream);
-            }
+            using var stream = browserFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            using var fileStream = new FileStream(filePath, FileMode.Create);
+            await stream.CopyToAsync(fileStream);
 
             return filePath;
         }

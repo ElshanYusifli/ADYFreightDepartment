@@ -1,3 +1,110 @@
 ﻿@page "/load-details/{TrackingId}"
+@using ADYFreightDepartment.Extensions
+@using ADYFreightDepartment.Models
+<PageTitle>Mallar</PageTitle>
+@* style="display: flex" *@
+<div class="title">
+    <button class="mainBtn gridBtn" role="button" @onclick="@(() => RedirectToLoads())">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <h1>
+        Mallar
+    </h1>
+</div>
 
-<h3>Load details</h3>
+<div class="data-details-cart">
+    <div>
+        TrackingId: @CurrentLoad.TrackingId
+    </div>
+    <div>
+        Status:  @((CurrentLoad.Status as Enum)?.GetDescription())
+    </div>
+</div>
+
+<div class="data-grid">
+    <table>
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Adı</th>
+                <th>Status</th>
+                <th>Açıqlama</th>
+                <th>Əməliyyatlar</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int rowNumber = 1;
+                foreach (var product in CurrentLoad.Products)
+                {
+                    <tr>
+                        <td>@rowNumber</td>
+                        <td>@product.Name</td>
+                        <td>@((product.Status as Enum)?.GetDescription())</td>
+                        <td>@product.Description</td>
+                        <td class="grid-actions">
+                            <button class="mainBtn gridBtn" role="button" @onclick="@(() => ShowStatusDetailsPopup(product.Id))">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+
+                            <button class="mainBtn gridBtn" role="button" @onclick="@(() => ShowEditPopup(product.Id))">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    rowNumber++;
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (PopupVisible)
+{
+    <div class="modal" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Popup Title</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="select" tabindex="1">
+                        <InputRadioGroup @bind-Value="CurrentPopupModel.Status" disabled="@IsReadOnly">
+                            @foreach (ProductStatus status in Enum.GetValues(typeof(ProductStatus)))
+                            {
+                                var id = $"opt{(int)status}";
+                                @* <input disabled="@IsReadOnly" class="selectopt" name="status" type="radio" id="@id" @bind-value=@CurrentProduct.Status> *@
+                                <InputRadio Value="status" class="selectopt" id="@id" disabled="@IsReadOnly"></InputRadio>
+                                <label for="@id" class="option">@status.GetDescription()</label>
+                            }
+                        </InputRadioGroup>
+                    </div>
+
+                    <InputTextArea @bind-Value="CurrentPopupModel.Description"
+                                   placeholder="Açıqlama"
+                                   disabled="@IsReadOnly"
+                                   rows="3"
+                                   style="width: 100%; margin-top: 15px;" />
+
+                    @if (IsReadOnly)
+                    {
+                        <img src="@ConvertImagePathToBase64(CurrentProduct.ImagePath)" alt="Şəkil əlavə edilməyib." />
+                    }
+                    else
+                    {
+                        <InputFile OnChange="HandleFileSelected" style="width: 100%; margin-top: 15px;" />
+                    }
+
+                </div>
+                <div class="modal-footer">
+                    <button class="mainBtn " role="button" @onclick="() => PopupVisible = false">Bağla</button>
+                    @if (!IsReadOnly)
+                    {
+                        <button class="mainBtn " role="button" @onclick="(() => ChangeStatus())">Yadda saxla</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
