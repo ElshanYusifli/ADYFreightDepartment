@@ -2,62 +2,70 @@
 @using ADYFreightDepartment.Extensions
 @using ADYFreightDepartment.Models
 <PageTitle>Mallar</PageTitle>
-@* style="display: flex" *@
-<div class="title">
-    <button class="mainBtn gridBtn" role="button" @onclick="@(() => RedirectToLoads())">
-        <i class="fa-solid fa-chevron-left"></i>
-    </button>
-    <h1>
-        Mallar
-    </h1>
-</div>
 
-<div class="data-details-cart">
-    <div>
-        TrackingId: @CurrentLoad.TrackingId
+@if (!IsDataFound)
+{
+    <NotFound />
+}
+else
+{
+    @* style="display: flex" *@
+    <div class="title">
+        <button class="mainBtn gridBtn" role="button" @onclick="@(() => RedirectToLoads())">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <h1>
+            Mallar
+        </h1>
     </div>
-    <div>
-        Status:  @((CurrentLoad.Status as Enum)?.GetDescription())
+
+    <div class="data-details-cart">
+        <div>
+            TrackingId: @CurrentLoad.TrackingId
+        </div>
+        <div>
+            Status:  @((CurrentLoad.Status as Enum)?.GetDescription())
+        </div>
     </div>
-</div>
 
-<div class="data-grid">
-    <table>
-        <thead>
-            <tr>
-                <th>№</th>
-                <th>Adı</th>
-                <th>Status</th>
-                <th>Açıqlama</th>
-                <th>Əməliyyatlar</th>
-            </tr>
-        </thead>
-        <tbody>
-            @{
-                int rowNumber = 1;
-                foreach (var product in CurrentLoad.Products)
-                {
-                    <tr>
-                        <td>@rowNumber</td>
-                        <td>@product.Name</td>
-                        <td>@((product.Status as Enum)?.GetDescription())</td>
-                        <td>@product.Description</td>
-                        <td class="grid-actions">
-                            <button class="mainBtn gridBtn" role="button" @onclick="@(() => ShowStatusDetailsPopup(product.Id))">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
+    <div class="data-grid">
+        <table>
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Adı</th>
+                    <th>Status</th>
+                    <th>Açıqlama</th>
+                    <th>Əməliyyatlar</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int rowNumber = 1;
+                    foreach (var product in CurrentLoad.Products)
+                    {
+                        <tr>
+                            <td>@rowNumber</td>
+                            <td>@product.Name</td>
+                            <td>@((product.Status as Enum)?.GetDescription())</td>
+                            <td>@product.Description</td>
+                            <td class="grid-actions">
+                                <button class="mainBtn gridBtn" role="button" @onclick="@(() => ShowStatusDetailsPopup(product.Id))">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
 
-                            <button class="mainBtn gridBtn" role="button" @onclick="@(() => ShowEditPopup(product.Id))">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    rowNumber++;
+                                <button class="mainBtn gridBtn" role="button" @onclick="@(() => ShowEditPopup(product.Id))">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        rowNumber++;
+                    }
                 }
-            }
-        </tbody>
-    </table>
-</div>
+            </tbody>
+        </table>
+    </div>
+}
 
 @if (PopupVisible)
 {
